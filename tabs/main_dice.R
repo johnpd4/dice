@@ -134,7 +134,22 @@ main_dice_ui = function(){
                        label = "What to do with a draw",
                        choices = c("Count as win" = 1, "Keep as draw" = 2, "Count as fail" = 0),
                        selected = c("Keep as draw" = 2)
-          ), # numeric input
+          ), # radio input
+          
+        ), # div
+        
+        div(
+          style = "display: flex; align-items: center;",
+          
+          tags$img(src = "figs/theres_options.png", width = "80px", style = "margin-top: 8px;"),
+          
+          radioButtons("method",
+                       label = "Method to Be Used",
+                       choices = c("Probability Distribution (best)" = "dist", "Exaustive Search (slow)" = "exaustive",
+                                   "Normal Approximation" = "norm", "Simulation Approximation" = "sim"),
+                       selected = c("Probability Distribution (best)" = "dist")
+                       
+          ), # radio input
           
         ), # div
         
@@ -156,13 +171,36 @@ main_dice_server = function(input, output, session){
                                     input$num_d10, input$num_d12, input$num_d20))
   })
   
-  dist_norm_approx = reactive({dice_density_norm_approx(dice_vec(),
-                                                        flat_bonus = input$flat_bonus,
-                                                        opposite_test = input$opposite_test,
-                                                        draw_behavior = as.numeric(input$draw_behavior))})
+  dist = reactive({
+    
+    if(input$method == "norm"){
+      dens = dice_density_norm_approx(dice_vec(),
+                                      flat_bonus = input$flat_bonus,
+                                      opposite_test = input$opposite_test,
+                                      draw_behavior = as.numeric(input$draw_behavior))
+    } else if(input$method == "exaustive"){
+      dens = dice_density_exaustive(dice_vec(),
+                                    flat_bonus = input$flat_bonus,
+                                    opposite_test = input$opposite_test,
+                                    draw_behavior = as.numeric(input$draw_behavior))
+    } else if(input$method == "sim"){
+      dens = dice_density_sim_approx(dice_vec(),
+                                     flat_bonus = input$flat_bonus,
+                                     opposite_test = input$opposite_test,
+                                     draw_behavior = as.numeric(input$draw_behavior))
+    } else if(input$method == "dist"){
+      dens = dice_density_analytic(dice_vec(),
+                                   flat_bonus = input$flat_bonus,
+                                   opposite_test = input$opposite_test,
+                                   draw_behavior = as.numeric(input$draw_behavior))
+    }
+    
+    return(dens)
+    
+  })
   
   output$norm_approx = renderPlotly({
-    dice_histogram(dist_norm_approx())
+    dice_histogram(dist())
   })
   
 } # server

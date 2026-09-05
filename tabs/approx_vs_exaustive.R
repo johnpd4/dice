@@ -5,13 +5,43 @@ approx_vs_exaustive_ui = function(){
   
   nav_panel(
     
-    title = "Normal Approx. vs Exaustive Search",
+    title = "Dist. Method Comparison",
     
     layout_sidebar(
       
       sidebar = sidebar(
         open = "always",
         width = "20%",
+        
+        div(
+          style = "display: flex; align-items: center;",
+          
+          tags$img(src = "figs/theres_options.png", width = "80px", style = "margin-top: 8px;"),
+          
+          radioButtons("method_1",
+                       label = "Which method to use for Dist. 1 (exacts)",
+                       choices = c("Exaustive Search (slow)" = "exaustive",
+                                   "Analytical Dice Distribution" = "dist"),
+                       selected = c("Analytical Dice Distribution" = "dist")
+          ), # radio input
+          
+        ), # div
+        
+        div(
+          style = "display: flex; align-items: center;",
+          
+          tags$img(src = "figs/more_options.png", width = "80px", style = "margin-top: 8px;"),
+          
+          radioButtons("method_2",
+                       label = "Which method to use for Dist. 2",
+                       choices = c("Exaustive Search (slow)" = "exaustive",
+                                   "Analytical Dice Distribution" = "dist",
+                                   "Normal Approximation (approx.)" = "norm",
+                                   "Simulation (approx.)" = "sim"),
+                       selected = c("Normal Approximation" = "norm")
+          ), # radio input
+          
+        ), # div
         
         div(
           style = "display: flex; align-items: center;",
@@ -106,14 +136,14 @@ approx_vs_exaustive_ui = function(){
       layout_columns(
         
         value_box(
-          title = tags$span("Exhaustive Algorithm", style = "font-size: 26px; font-weight: bold;"),
+          title = tags$span("Distribution Method 1", style = "font-size: 26px; font-weight: bold;"),
           p("Error = 0"),
           tags$span(textOutput("exaustive_time"), style = "font-size: 26px; font-weight: bold;"),
           theme = value_box_theme(bg = "#2E8B57")
         ), # card
         
         value_box(
-          title = tags$span("Normal Dist. Approximation", style = "font-size: 26px; font-weight: bold;"),
+          title = tags$span("Distribution Method 2", style = "font-size: 26px; font-weight: bold;"),
           textOutput("approx_error"),
           tags$span(textOutput("norm_approx_time"), style = "font-size: 26px; font-weight: bold;"),
           theme = value_box_theme(bg = "#00B894")
@@ -145,53 +175,99 @@ approx_vs_exaustive_server = function(input, output, session){
     x
   })
   
-  dist_exaustive_timed = reactive({
+  dist_exact_timed = reactive({
     
-    exaustive_time = Sys.time()
+    time_1 = Sys.time()
     
-    dist = dice_density_exaustive(dice_vec_timed(),
-                                  flat_bonus = input$flat_bonus,
-                                  opposite_test = input$opposite_test,
-                                  draw_behavior = 2)
-    
-    attr(dist, "time") = Sys.time() - exaustive_time
+    if(input$method_1 == "exaustive"){
+      dist = dice_density_exaustive(dice_vec_timed(),
+                                    flat_bonus = input$flat_bonus,
+                                    opposite_test = input$opposite_test,
+                                    draw_behavior = 2)
+      
+    } else if(input$method_1 == "dist"){
+      dist = dice_density_analytic(dice_vec_timed(),
+                                   flat_bonus = input$flat_bonus,
+                                   opposite_test = input$opposite_test,
+                                   draw_behavior = 2)
+      
+    } else if(input$method_1 == "norm"){
+      
+      dist = dice_density_norm_approx(dice_vec_timed(),
+                                      flat_bonus = input$flat_bonus,
+                                      opposite_test = input$opposite_test,
+                                      draw_behavior = 2)
+      
+    } else if(input$method_1 == "sim"){
+      
+      dist = dice_density_sim_approx(dice_vec_timed(),
+                                     flat_bonus = input$flat_bonus,
+                                     opposite_test = input$opposite_test,
+                                     draw_behavior = 2)
+      
+    }
+      
+    attr(dist, "time") = Sys.time() - time_1
     
     dist
     
   })
   
   output$exaustive_time = renderText({
-    paste0("Time: ", attr(dist_exaustive_timed(), "time") |> round(4), " secs")
+    paste0("Time: ", attr(dist_exact_timed(), "time") |> round(4), " secs")
   })
   
-  dist_norm_approx_timed = reactive({
+  dist_approx_timed = reactive({
     
-    norm_approx_time = Sys.time()
+    time_2 = Sys.time()
     
-    dist = dice_density_norm_approx(dice_vec_timed(),
+    if(input$method_2 == "exaustive"){
+      dist = dice_density_exaustive(dice_vec_timed(),
                                     flat_bonus = input$flat_bonus,
                                     opposite_test = input$opposite_test,
                                     draw_behavior = 2)
+      
+    } else if(input$method_2 == "dist"){
+      dist = dice_density_analytic(dice_vec_timed(),
+                                   flat_bonus = input$flat_bonus,
+                                   opposite_test = input$opposite_test,
+                                   draw_behavior = 2)
+      
+    } else if(input$method_2 == "norm"){
+      
+      dist = dice_density_norm_approx(dice_vec_timed(),
+                                      flat_bonus = input$flat_bonus,
+                                      opposite_test = input$opposite_test,
+                                      draw_behavior = 2)
+      
+    } else if(input$method_2 == "sim"){
+      
+      dist = dice_density_sim_approx(dice_vec_timed(),
+                                     flat_bonus = input$flat_bonus,
+                                     opposite_test = input$opposite_test,
+                                     draw_behavior = 2)
+      
+    }
     
-    attr(dist, "time") = Sys.time() - norm_approx_time
+    attr(dist, "time") = Sys.time() - time_2
     
     dist
     
   })
   
   output$norm_approx_time = renderText({
-    paste0("Time: ", attr(dist_norm_approx_timed(), "time") |> round(4), " secs")
+    paste0("Time: ", attr(dist_approx_timed(), "time") |> round(4), " secs")
   })
 
   output$diff_plot = renderPlotly({
-    diff_plot(dist_exaustive_timed(), dist_norm_approx_timed())
+    diff_plot(dist_exact_timed(), dist_approx_timed())
   })
   
   output$approx_error = renderText({
-    dens1 = dist_exaustive_timed() |> getElement("Density")
-    dens2 = dist_norm_approx_timed() |> getElement("Density")
-    error = mean(abs(dens1 - dens2)) |> round(4)
-    paste0("Error (MAE) = ", error)
+    dens1 = dist_exact_timed() |> getElement("Density")
+    dens2 = dist_approx_timed() |> getElement("Density")
+    error = max(cumsum(dens1) - cumsum(dens2)) |> round(6)
+    paste0("Error (K.S. Statistic) = ", error)
   })
   
 }

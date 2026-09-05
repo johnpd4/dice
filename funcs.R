@@ -93,6 +93,8 @@ dice_density_norm_approx = function(dice_vec, # A vector with n numbers. Every n
   
   names(dens) = c("Value", "Density", "Result")
   
+  dens$Density = dens$Density / sum(dens$Density)
+  
   return(dens)
   
 }
@@ -140,6 +142,62 @@ dice_density_sim_approx = function(dice_vec, # A vector with n numbers. Every nu
     dens = rbind(dens, aux)
     
   }
+  
+  names(dens) = c("Value", "Density", "Result")
+  
+  return(dens)
+  
+}
+
+dice_density_analytic = function(dice_vec, # A vector with n numbers. Every number is consider a "1dn" dice
+                                           # c(8, 8, 4) -> 2d8 + 1d4
+                                 flat_bonus = 0, # Flat bonus
+                                 per_dice_bonus = 0, # Flat bonus per dice rolled
+                                 draw_behavior = 2, # 0 = Draw is a loss
+                                                    # 1 = Draw is a win
+                                                    # 2 = Draw is a draw
+                                 opposite_test = 15 # Value of the opposite test
+                                 ){
+    
+  if(!is.numeric(dice_vec) || length(dice_vec) < 1){return(data.frame("Value" = 1, "Density" = 1, "Result" = 1))}
+  
+  sides = unique(dice_vec)
+  number_of_dice = length(dice_vec)
+  
+  n = c()
+  
+  for(i in 1:length(sides)){
+    
+    n[i] = sum(dice_vec == sides[i])
+    
+  }
+  
+  p = 1
+  
+  for (j in seq_along(n)) {
+    
+    die = rep(1 / sides[j], sides[j])
+    
+    for (i in seq_len(n[j])) {
+      p = convolve(p, rev(die), type = "open")
+    }
+  }
+  
+  N = sum(n)
+  
+  dens = data.frame(sum = N:sum(n * sides), prob = p)
+  
+  result = c()
+  
+  for(i in 1:nrow(dens)){
+  
+    dice_total = dens$sum[i] + per_dice_bonus * number_of_dice + flat_bonus
+    
+    result[i] = ((dice_total > opposite_test) + (dice_total == opposite_test) * draw_behavior)
+    
+  }
+  
+  dens = cbind(dens, result)
   
   names(dens) = c("Value", "Density", "Result")
   
