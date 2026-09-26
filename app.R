@@ -6,6 +6,7 @@ pacman::p_load(shiny, bslib, plotly, shinyWidgets,
 source("tabs/main_dice.R")
 source("tabs/opposite_test.R")
 source("tabs/approx_vs_exaustive.R")
+source("tabs/spell_comparison.R")
 source("tabs/algorithm_times.R")
 
 ui = page_navbar(
@@ -18,8 +19,11 @@ ui = page_navbar(
   # in tabs/opposite_test.R
   opposite_test_ui(),
   
-  # in tabs/approx_vs_exaustive
+  # in tabs/approx_vs_exaustive.R
   approx_vs_exaustive_ui(),
+  
+  # in tabs/spell_comparison.R
+  spell_comparison_ui(),
   
 )
 
@@ -33,6 +37,9 @@ server = function(input, output, session){
   
   # in tabs/approx_vs_exaustive.R
   approx_vs_exaustive_server(input, output, session)
+  
+  # in tabs/spell_comparison.R
+  spell_comparison_server(input, output, session)
   
 }
 

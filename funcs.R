@@ -439,7 +439,65 @@ diff_plot = function(dens1, dens2){
   
 }
 
-teste1 = dice_density_exaustive(c(6, 6, 6))
-teste2 = dice_density_norm_approx(c(6, 6, 6))
+# teste1 = dice_density_exaustive(c(6, 6, 6))
+# teste2 = dice_density_norm_approx(c(6, 6, 6))
+# 
+# diff_plot(teste1, teste2)
 
-diff_plot(teste1, teste2)
+spell_comparison_plot = function(dens1, dens2, opposite_test = 15, type = "negative"){
+  
+  pass_col_1 = "#1D4ED8"
+  draw_col_1 = "#60A5FA"
+  fail_col_1 = "#BFDBFE"
+  
+  pass_perc_1 = dens1 |> subset(Result == 1) |> select(Density) |> sum() |> times(100) |> round(2)
+  fail_perc_1 = dens1 |> subset(Result == 0) |> select(Density) |> sum() |> times(100) |> round(2)
+  draw_perc_1 = dens1 |> subset(Result == 2) |> select(Density) |> sum() |> times(100) |> round(2)
+  
+  pass_col_2 = "#B91C1C"
+  draw_col_2 = "#F87171"
+  fail_col_2 = "#FECACA"
+  
+  pass_perc_2 = dens2 |> subset(Result == 1) |> select(Density) |> sum() |> times(100) |> round(2)
+  fail_perc_2 = dens2 |> subset(Result == 0) |> select(Density) |> sum() |> times(100) |> round(2)
+  draw_perc_2 = dens2 |> subset(Result == 2) |> select(Density) |> sum() |> times(100) |> round(2)
+  
+  if(type == "negative"){dens2$Density = -dens2$Density}
+  if(type == "opacity"){alpha = 0.7} else {alpha = 1}
+  
+  fig = plot_ly(data = dens1 |> subset(Result == 1),# opacity = alpha,
+                x =~ Value, y =~ Density, marker = list(color = pass_col_1), name = paste0("Pass (", pass_perc_1, "%)"), type = "bar",
+                hovertemplate = paste(" Value: %{x}<br>", "Density: %{y:.4f}<extra></extra>", "<br> Probability: %{y:.2%}"))
+  fig = fig |> add_trace(inherit = F, data = dens1 |> subset(Result == 2),# opacity = alpha,
+                         x =~ Value, y =~ Density, marker = list(color = draw_col_1), name = paste0("Draw (", draw_perc_1, "%)"), type = "bar",
+                         hovertemplate = paste(" Value: %{x}<br>", "Density: %{y:.4f}<extra></extra>", "<br> Probability: %{y:.2%}"))
+  fig = fig |> add_trace(inherit = F, data = dens1 |> subset(Result == 0),# opacity = alpha,
+                         x =~ Value, y =~ Density, marker = list(color = fail_col_1), name = paste0("Fail (", fail_perc_1, "%)"), type = "bar",
+                         hovertemplate = paste(" Value: %{x}<br>", "Density: %{y:.4f}<extra></extra>", "<br> Probability: %{y:.2%}"))
+  
+  fig = fig |> add_trace(data = dens2 |> subset(Result == 1), opacity = alpha,
+                x =~ Value, y =~ Density, marker = list(color = pass_col_2), name = paste0("Pass (", pass_perc_2, "%)"), type = "bar",
+                hovertemplate = paste(" Value: %{x}<br>", "Density: %{y:.4f}<extra></extra>", "<br> Probability: %{y:.2%}"))
+  fig = fig |> add_trace(inherit = F, data = dens2 |> subset(Result == 2), opacity = alpha,
+                         x =~ Value, y =~ Density, marker = list(color = draw_col_2), name = paste0("Draw (", draw_perc_2, "%)"), type = "bar",
+                         hovertemplate = paste(" Value: %{x}<br>", "Density: %{y:.4f}<extra></extra>", "<br> Probability: %{y:.2%}"))
+  fig = fig |> add_trace(inherit = F, data = dens2 |> subset(Result == 0), opacity = alpha,
+                         x =~ Value, y =~ Density, marker = list(color = fail_col_2), name = paste0("Fail (", fail_perc_2, "%)"), type = "bar",
+                         hovertemplate = paste(" Value: %{x}<br>", "Density: %{y:.4f}<extra></extra>", "<br> Probability: %{y:.2%}"))
+  
+  fig = fig |> layout(shapes = list(list(type = "line", x0 = opposite_test, x1 = opposite_test,
+                                         y0 = 0, y1 = 1, yref = "paper", line = list(color = "black", width = 2, dash = "dash"))))
+  
+  fig = fig |> layout(barmode = "overlay")
+  fig = fig |> layout(legend = list(orientation = "h", x = 0.5, xanchor = "center",
+                                    y = 1.1, yanchor = "bottom", traceorder = "reversed", font = list(size = 18)))
+  
+  fig
+    
+}
+
+teste1 = dice_density_exaustive(c(6, 6, 6))
+teste2 = dice_density_norm_approx(c(8, 6, 6))
+
+spell_comparison_plot(teste1, teste2)
+
