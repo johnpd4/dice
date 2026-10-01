@@ -56,19 +56,24 @@ spell_comparison_ui = function(){
           
         ), # div
         
-        div(
-          style = "display: flex; align-items: center;",
-          
-          tags$img(src = "figs/dead_eye.png", width = "80px", style = "margin-top: 8px;"),
-          
-          numericInputIcon("opposite_test",
-                           label = "Target",
-                           value = 0,
-                           min = 0,
-                           max = 999
-          ), # numeric input
-          
-        ), # div
+        conditionalPanel(
+          condition = "input.use_target == 'TRUE'",
+        
+          div(
+            style = "display: flex; align-items: center;",
+            
+            tags$img(src = "figs/dead_eye.png", width = "80px", style = "margin-top: 8px;"),
+            
+            numericInputIcon("opposite_test",
+                             label = "Target",
+                             value = 0,
+                             min = 0,
+                             max = 999
+            ), # numeric input
+            
+          ), # div
+        
+        ), # conditional panel
         
         div(
           style = "display: flex; align-items: center;",
@@ -300,7 +305,8 @@ spell_comparison_server = function(input, output, session){
   
   output$comparison_plot = renderPlotly({
     
-    spell_comparison_plot(dist_s1(), dist_s2(), opposite_test = input$opposite_test, type = input$type)
+    spell_comparison_plot(dist_s1(), dist_s2(), do_test = input$use_target,
+                          opposite_test = input$opposite_test, type = input$type)
     
   })
   

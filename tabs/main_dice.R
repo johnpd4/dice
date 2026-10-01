@@ -145,7 +145,7 @@ main_dice_ui = function(){
           
           radioButtons("method",
                        label = "Method to Be Used",
-                       choices = c("Probability Distribution (best)" = "dist", "Exaustive Search (slow)" = "exaustive",
+                       choices = c("Probability Distribution (best)" = "dist", "Exaustive Search (may destroy pc)" = "exaustive",
                                    "Normal Approximation" = "norm", "Simulation Approximation" = "sim"),
                        selected = c("Probability Distribution (best)" = "dist")
                        

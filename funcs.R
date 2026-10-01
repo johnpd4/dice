@@ -444,7 +444,7 @@ diff_plot = function(dens1, dens2){
 # 
 # diff_plot(teste1, teste2)
 
-spell_comparison_plot = function(dens1, dens2, opposite_test = 15, type = "negative"){
+spell_comparison_plot = function(dens1, dens2, opposite_test = 15, type = "negative", do_test = TRUE){
   
   pass_col_1 = "#1D4ED8"
   draw_col_1 = "#60A5FA"
@@ -485,14 +485,16 @@ spell_comparison_plot = function(dens1, dens2, opposite_test = 15, type = "negat
                          x =~ Value, y =~ Density, marker = list(color = fail_col_2), name = paste0("Fail (", fail_perc_2, "%)"), type = "bar",
                          hovertemplate = paste(" Value: %{x}<br>", "Density: %{y:.4f}<extra></extra>", "<br> Probability: %{y:.2%}"))
   
-  fig = fig |> layout(shapes = list(list(type = "line", x0 = opposite_test, x1 = opposite_test,
-                                         y0 = 0, y1 = 1, yref = "paper", line = list(color = "black", width = 2, dash = "dash"))))
+  if(do_test){
+    fig = fig |> layout(shapes = list(list(type = "line", x0 = opposite_test, x1 = opposite_test,
+                                           y0 = 0, y1 = 1, yref = "paper", line = list(color = "black", width = 2, dash = "dash"))))
+  }
   
   fig = fig |> layout(barmode = "overlay")
   fig = fig |> layout(legend = list(orientation = "h", x = 0.5, xanchor = "center",
                                     y = 1.1, yanchor = "bottom", traceorder = "reversed", font = list(size = 18)))
   
-  fig
+  return(fig)
     
 }
 
